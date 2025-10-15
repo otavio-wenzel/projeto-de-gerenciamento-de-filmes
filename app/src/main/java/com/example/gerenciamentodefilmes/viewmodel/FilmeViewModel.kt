@@ -5,46 +5,59 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.example.gerenciamentodefilmes.model.Validacao
 import com.example.gerenciamentodefilmes.model.entity.Filme
+import androidx.lifecycle.viewModelScope
+import com.example.gerenciamentodefilmes.model.dao.FilmeDao
+import kotlinx.coroutines.launch
 
-class FilmeViewModel: ViewModel() {
+class FilmeViewModel(private  val filmeDao : FilmeDao): ViewModel() {
 
     var listaFilmes = mutableStateOf(listOf<Filme>())
         private set
 
+    init {
+        carregarFilmes()
+    }
+
+    private fun carregarFilmes(){
+        viewModelScope.launch {
+            listaFilmes.value = filmeDao.buscarTodos()
+        }
+    }
+
     fun salvarFilme(titulo: String, diretor: String) : String {
-        if (Validacao.haCamposEmBranco(titulo, diretor)) {
+        if (titulo.isBlank() || diretor.isBlank()) {
             return "Preencha todos os campos!"
         }
 
-        val filme = Filme(
-            Validacao.getId(),
-            titulo,
-            diretor
-        )
+        val filme = Filme(id = 0, titulo = titulo, diretor = diretor)
 
-        listaFilmes.value += filme
+        viewModelScope.launch {
+            filmeDao.inserir(filme)
+            carregarFilmes()
+        }
 
         return "Filme salvo com sucesso!"
     }
 
-    fun excluirFilme(id: Int) {
-        listaFilmes.value = listaFilmes.value.filter { it.id != id }
+    fun excluirFilme(filme: Filme) {
+        viewModelScope.launch {
+            filmeDao.deletar(filme)
+            carregarFilmes()
+        }
     }
 
     fun atualizarFilme(id: Int, titulo: String, diretor: String) : String {
-        if (Validacao.haCamposEmBranco(titulo, diretor)) {
-            return ("Ao editar, preencha todos os dados do filme!")
+        if (titulo.isBlank() || diretor.isBlank()) {
+            return ("Preencha todos os campos!")
         }
 
-        val filmesAtualizados = listaFilmes.value.map { filme ->
-            if (filme.id == id) {
-                filme.copy(titulo = titulo, diretor = diretor)
-            } else {
-                filme
-            }
-        }
+        val filme = listaFilmes.value.find { it.id == id } ?: return "Erro ao atualizar filme"
+        val filmeAtualizado = filme.copy(titulo = titulo, diretor = diretor)
 
-        listaFilmes.value = filmesAtualizados
+        viewModelScope.launch {
+            filmeDao.atualizar(filmeAtualizado)
+            carregarFilmes()
+        }
 
         return "Filme atualizado!"
     }
