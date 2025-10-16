@@ -31,41 +31,60 @@ import androidx.compose.foundation.layout.*
 import com.example.gerenciamentodefilmes.model.database.AppDatabase
 import com.example.gerenciamentodefilmes.model.entity.Filme
 import com.example.gerenciamentodefilmes.viewmodel.FilmeViewModelFactory
+import android.content.Intent
+import androidx.compose.material3.*
+import com.example.gerenciamentodefilmes.model.entity.Diretor
+import com.example.gerenciamentodefilmes.viewmodel.DiretorViewModel
+import com.example.gerenciamentodefilmes.viewmodel.DiretorViewModelFactory
 
 class MainActivity : ComponentActivity() {
+
     private val filmeViewModel: FilmeViewModel by viewModels {
-        val dao = AppDatabase.getDatabase(applicationContext).filmeDao()
+        val dao = AppDatabase.getDatabase(applicationContext).getFilmeDao()
         FilmeViewModelFactory(dao)
+    }
+
+    private val diretorViewModel: DiretorViewModel by viewModels {
+        val dao = AppDatabase.getDatabase(applicationContext).getDiretorDao()
+        DiretorViewModelFactory(dao)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MainScreen(filmeViewModel)
+            MainScreen(filmeViewModel, diretorViewModel)
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        diretorViewModel.buscarTodos()
+    }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(filmeViewModel: FilmeViewModel) {
+fun MainScreen(filmeViewModel: FilmeViewModel, diretorViewModel: DiretorViewModel) {
     var titulo by remember { mutableStateOf("") }
-    var diretor by remember { mutableStateOf("") }
-    var filmeTemp by remember { mutableStateOf<Filme?>(null) }
+    var diretorSelecionado by remember { mutableStateOf<Diretor?>(null) }
+    var filmeExcluir by remember { mutableStateOf<Filme?>(null) }
     var textoBotao by remember { mutableStateOf("Salvar") }
     var modoEditar by remember { mutableStateOf(false) }
 
     val listaFilmes by filmeViewModel.listaFilmes
+    val listaDiretores by diretorViewModel.listaDiretores
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
 
     // Variável de estado para exibir ou ocultar a caixa de diálogo
     var mostrarCaixaDialogo by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
 
     // Caixa de diálogo para confirmação de exclusão
     if (mostrarCaixaDialogo) {
         ExcluirFilme(onConfirm = {
-            filmeTemp?.let { filmeViewModel.excluirFilme(it) }
+            filmeExcluir?.let { filmeViewModel.excluirFilme(it) }
             mostrarCaixaDialogo = false
         }, onDismiss = { mostrarCaixaDialogo = false })
     }
@@ -83,58 +102,101 @@ fun MainScreen(filmeViewModel: FilmeViewModel) {
 
         Spacer(modifier = Modifier.height(15.dp))
 
-        TextField(
-            value = titulo,
-            onValueChange = { titulo = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text(text = "Título do filme") }
-        )
-
-        Spacer(modifier = Modifier.height(15.dp))
-
-        TextField(
-            value = diretor,
-            onValueChange = { diretor = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text(text = "Diretor do filme") }
-        )
-
-        Spacer(modifier = Modifier.height(15.dp))
-
         Button(
-            modifier = Modifier.fillMaxWidth(),
             onClick = {
-                val retorno: String? = if (modoEditar) {
-                    // Atualização do filme existente
-                    filmeTemp?.let {
-                        filmeViewModel.atualizarFilme(it.id, titulo, diretor).also {
-                            modoEditar = false
-                            textoBotao = "Salvar"
-                        }
-                    }
-                } else {
-                    // Salvar novo filme
-                    filmeViewModel.salvarFilme(titulo, diretor)
-                }
-
-                Toast.makeText(context, retorno, Toast.LENGTH_LONG).show()
-
-                // Limpar os campos de entrada e foco
-                titulo = ""
-                diretor = ""
-                focusManager.clearFocus()
-            }
+                context.startActivity(Intent(context, DiretorActivity::class.java))
+            },
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = textoBotao)
+            Text(text = "Adicionar Diretor")
         }
 
         Spacer(modifier = Modifier.height(15.dp))
 
+        if (listaDiretores.isEmpty()) {
+            Text(
+                text = "Cadastre ao menos um diretor para adicionar filmes.",
+                fontSize = 18.sp,
+                modifier = Modifier.fillMaxWidth()
+            )
+        } else {
+            TextField(
+                value = titulo,
+                onValueChange = { titulo = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = "Título do filme") }
+            )
+
+            Spacer(modifier = Modifier.height(15.dp))
+
+            // Dropdown Menu para selecionar o diretor
+            Box {
+                Button(
+                    onClick = { expanded = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = diretorSelecionado?.nome ?: "Selecione um diretor")
+                }
+
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    listaDiretores.forEach {
+                        DropdownMenuItem(text = { Text(text = it.nome) }, onClick = {   diretorSelecionado = it
+                            expanded = false
+                        }
+                        )
+
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(15.dp))
+
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    if (diretorSelecionado == null) {
+                        Toast.makeText(context, "Selecione um diretor!", Toast.LENGTH_LONG).show()
+                        return@Button
+                    }
+
+                    val retorno: String? = if (modoEditar) {
+                        filmeExcluir?.let {
+                            filmeViewModel.atualizarFilme(it.id, titulo, diretorSelecionado!!.id)
+                                .also {
+                                    modoEditar = false
+                                    textoBotao = "Salvar"
+                                }
+                        }
+                    } else {
+                        filmeViewModel.salvarFilme(titulo, diretorSelecionado!!.id)
+                    }
+
+                    Toast.makeText(context, retorno, Toast.LENGTH_LONG).show()
+
+                    titulo = ""
+                    diretorSelecionado = null
+                    focusManager.clearFocus()
+                }
+            ) {
+                Text(text = textoBotao)
+            }
+
+            Spacer(modifier = Modifier.height(15.dp))
+        }
+
         // Lista de filmes
         LazyColumn {
             items(listaFilmes) { filme ->
+                // Encontre o diretor correspondente ao filme
+                val diretor = listaDiretores.find { it.id == filme.diretorId }
+
+                // Exibir título do filme e nome do diretor
                 Text(
-                    text = "${filme.titulo} (${filme.diretor})",
+                    text = "${filme.titulo} (${diretor?.nome ?: "Diretor não encontrado"})",
                     modifier = Modifier.fillMaxWidth(),
                     fontSize = 18.sp
                 )
@@ -143,7 +205,7 @@ fun MainScreen(filmeViewModel: FilmeViewModel) {
 
                 Row {
                     Button(onClick = {
-                        filmeTemp = filme
+                        filmeExcluir = filme
                         mostrarCaixaDialogo = true
                     }) {
                         Text(text = "Excluir")
@@ -151,9 +213,9 @@ fun MainScreen(filmeViewModel: FilmeViewModel) {
 
                     Button(onClick = {
                         modoEditar = true
-                        filmeTemp = filme
+                        filmeExcluir = filme
                         titulo = filme.titulo
-                        diretor = filme.diretor
+                        diretorSelecionado = listaDiretores.find { it.id == filme.diretorId }
                         textoBotao = "Atualizar"
                     }) {
                         Text(text = "Atualizar")
@@ -162,6 +224,7 @@ fun MainScreen(filmeViewModel: FilmeViewModel) {
                 Spacer(modifier = Modifier.height(15.dp))
             }
         }
+
     }
 }
 
@@ -183,3 +246,4 @@ fun ExcluirFilme(onConfirm: () -> Unit, onDismiss: () -> Unit) {
         }
     )
 }
+

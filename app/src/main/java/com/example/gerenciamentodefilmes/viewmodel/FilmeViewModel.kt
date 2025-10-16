@@ -24,12 +24,12 @@ class FilmeViewModel(private  val filmeDao : FilmeDao): ViewModel() {
         }
     }
 
-    fun salvarFilme(titulo: String, diretor: String) : String {
-        if (titulo.isBlank() || diretor.isBlank()) {
-            return "Preencha todos os campos!"
+    fun salvarFilme(titulo: String, diretorId: Int) : String {
+        if (titulo.isBlank()) {
+            return "Preencha o título do campos!"
         }
 
-        val filme = Filme(id = 0, titulo = titulo, diretor = diretor)
+        val filme = Filme(id = 0, titulo = titulo, diretorId = diretorId)
 
         viewModelScope.launch {
             filmeDao.inserir(filme)
@@ -46,13 +46,13 @@ class FilmeViewModel(private  val filmeDao : FilmeDao): ViewModel() {
         }
     }
 
-    fun atualizarFilme(id: Int, titulo: String, diretor: String) : String {
-        if (titulo.isBlank() || diretor.isBlank()) {
-            return ("Preencha todos os campos!")
+    fun atualizarFilme(id: Int, titulo: String, diretorId: Int) : String {
+        if (titulo.isBlank()) {
+            return ("Não pode deixar o título em branco")
         }
 
         val filme = listaFilmes.value.find { it.id == id } ?: return "Erro ao atualizar filme"
-        val filmeAtualizado = filme.copy(titulo = titulo, diretor = diretor)
+        val filmeAtualizado = filme.copy(titulo = titulo, diretorId = diretorId)
 
         viewModelScope.launch {
             filmeDao.atualizar(filmeAtualizado)
