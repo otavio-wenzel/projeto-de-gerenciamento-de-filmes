@@ -3,7 +3,6 @@ package com.example.gerenciamentodefilmes.viewmodel
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import com.example.gerenciamentodefilmes.model.Validacao
 import com.example.gerenciamentodefilmes.model.entity.Filme
 import androidx.lifecycle.viewModelScope
 import com.example.gerenciamentodefilmes.model.dao.FilmeDao

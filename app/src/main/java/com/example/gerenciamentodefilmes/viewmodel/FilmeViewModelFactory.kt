@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.gerenciamentodefilmes.model.dao.FilmeDao
 
-
 class FilmeViewModelFactory(
     private val filmeDao: FilmeDao
 ) : ViewModelProvider.Factory {

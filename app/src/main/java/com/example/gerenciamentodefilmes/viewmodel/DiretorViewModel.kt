@@ -8,6 +8,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.mutableStateOf
 
 class DiretorViewModel(private val diretorDao: DiretorDao) : ViewModel() {
+
     var listaDiretores = mutableStateOf(listOf<Diretor>())
 
     init {

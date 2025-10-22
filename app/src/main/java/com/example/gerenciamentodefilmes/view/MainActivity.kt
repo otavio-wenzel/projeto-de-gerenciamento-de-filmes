@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,7 +29,6 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.*
 import com.example.gerenciamentodefilmes.model.database.AppDatabase
 import com.example.gerenciamentodefilmes.model.entity.Filme
-import com.example.gerenciamentodefilmes.viewmodel.FilmeViewModelFactory
 import android.content.Intent
 import androidx.compose.material3.*
 import com.example.gerenciamentodefilmes.model.entity.Diretor
