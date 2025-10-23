@@ -8,6 +8,7 @@ import com.example.gerenciamentodefilmes.model.entity.Diretor
 @Dao
 interface DiretorDao {
     @Insert
-    suspend fun inserir(diretor: Diretor)@Query("SELECT * FROM diretor")
+    suspend fun inserir(diretor: Diretor)
+    @Query("SELECT * FROM diretor")
     suspend fun buscarTodos(): List<Diretor>
 }

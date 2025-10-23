@@ -34,8 +34,17 @@ abstract class AppDatabase : RoomDatabase() {
 
         private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("CREATE TABLE IF NOT EXISTS `diretor` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `nome` TEXT NOT NULL, `anosDeExperiencia` INTEGER NOT NULL)")
-                database.execSQL("ALTER TABLE `filme` ADD COLUMN `diretorId` INTEGER NOT NULL DEFAULT 0 REFERENCES `diretor`(`id`) ON DELETE CASCADE")
+                database.execSQL("""
+            CREATE TABLE IF NOT EXISTS `diretor` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `nome` TEXT NOT NULL,
+                `anosDeExperiencia` INTEGER NOT NULL
+            )
+        """.trimIndent())
+
+                database.execSQL("""
+            ALTER TABLE `filme` ADD COLUMN `diretorId` INTEGER NOT NULL DEFAULT 0
+        """.trimIndent())
             }
         }
     }

@@ -12,6 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GerenciamentoDeFilmes"
         tools:targetApi="31">
+
         <activity
             android:name=".view.MainActivity"
             android:exported="true"
@@ -19,10 +20,12 @@
             android:theme="@style/Theme.GerenciamentoDeFilmes">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-    </application>
 
+        <activity
+            android:name=".view.DiretorActivity"
+            android:exported="false" />
+    </application>
 </manifest>

@@ -23,7 +23,7 @@ class DiretorViewModel(private val diretorDao: DiretorDao) : ViewModel() {
         }
     }
 
-    private fun buscarTodos() {
+    fun buscarTodos() {
         viewModelScope.launch {
             listaDiretores.value = diretorDao.buscarTodos()
         }
